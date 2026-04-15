@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QLC Loan Offer Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1a1f3d;
+    --blue: #3b708c;
+    --blue-mid: #5689a6;
+    --blue-deep: #1d465c;
+    --light: #f0f0f0;
+    --white: #ffffff;
+    --input-bg: #f7f9fb;
+    --border: #d0dde6;
+    --result-bg: #eaf3f8;
+    --green: #2e7d52;
+    --green-bg: #eaf5ee;
+    --warn: #b45309;
+    --warn-bg: #fef3cd;
+    --text: #1a1f3d;
+    --muted: #6b7a8d;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--light);
+    color: var(--text);
+    padding: 2rem 1rem 3rem;
+  }
+
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  header {
+    background: var(--navy);
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--white);
+    line-height: 1.2;
+  }
+
+  header p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 2px;
+  }
+
+  .print-btn {
+    background: var(--navy);
+    border: none;
+    color: white;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s;
+  }
+
+  .print-btn:hover { background: var(--blue-deep); }
+
+  .print-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  .print-hint {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { max-width: 100%; }
+    header { border-radius: 0; }
+    .body { border-radius: 0; border: none; }
+    .print-btn, .print-hint { display: none; }
+    .field input { border: none; background: transparent; padding: 0; font-size: 13px; }
+    .cap-fields { display: grid !important; }
+    .cap-note { display: block !important; }
+    .section { break-inside: avoid; }
+  }
+
+  .body {
+    background: var(--white);
+    border-radius: 0 0 12px 12px;
+    border: 1px solid var(--border);
+    border-top: none;
+  }
+
+  .section {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue-deep);
+    margin-bottom: 1rem;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .field label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .field input {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--navy);
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .field input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59,112,140,0.12);
+  }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 1rem;
+  }
+
+  .metric {
+    background: var(--result-bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    color: var(--blue-deep);
+    font-weight: 500;
+    margin-bottom: 3px;
+  }
+
+  .metric-value {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--navy);
+  }
+
+  .fee-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .fee-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eef2f5;
+    font-size: 13px;
+  }
+
+  .fee-row:last-child { border-bottom: none; }
+
+  .fee-row .fee-name { color: var(--muted); }
+
+  .fee-row .fee-val {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--navy);
+  }
+
+  .fee-row.subtotal {
+    border-top: 1.5px solid var(--border);
+    border-bottom: none;
+    margin-top: 4px;
+    padding-top: 10px;
+  }
+
+  .fee-row.subtotal .fee-name { font-weight: 600; color: var(--navy); font-size: 12px; }
+  .fee-row.subtotal .fee-val { font-size: 14px; color: var(--blue-deep); }
+
+  .summary-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sum-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #eef2f5;
+  }
+
+  .sum-row:last-child { border-bottom: none; }
+  .sum-row .sum-label { color: var(--muted); }
+  .sum-row .sum-val { font-family: var(--mono); font-weight: 500; }
+
+  .total-box {
+    background: var(--navy);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .total-box .t-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 3px;
+  }
+
+  .total-box .t-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--white);
+  }
+
+  .lvr-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .lvr-badge.ok { background: var(--green-bg); color: var(--green); }
+  .lvr-badge.warn { background: var(--warn-bg); color: var(--warn); }
+
+  .cap-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .toggle-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .toggle-label span {
+    display: block;
+    font-size: 10px;
+    color: #a0aab4;
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  .toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+
+  .toggle input:checked + .toggle-track { background: var(--blue); }
+  .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+  .cap-fields {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .cap-fields.visible { display: grid; }
+
+  .cap-note {
+    font-size: 11px;
+    color: var(--blue-deep);
+    background: var(--result-bg);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  .cap-note.visible { display: block; }
+
+  @media (max-width: 520px) {
+    .field-grid, .field-grid.three, .metrics-row { grid-template-columns: 1fr 1fr; }
+    .section { padding: 1.25rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="logo-mark">QLC</div>
+    <div>
+      <h1>Loan Offer Calculator</h1>
+      <p>Quick Lending Co — Private Lending</p>
+    </div>
+  </header>
+
+  <div class="body">
+
+    <!-- CLIENT DETAILS -->
+    <div class="section">
+      <div class="section-label">Client Details</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Client name</label>
+          <input type="text" id="clientName" placeholder="e.g. John Smith" />
+        </div>
+        <div class="field">
+          <label>Property address</label>
+          <input type="text" id="clientAddress" placeholder="e.g. 12 Example St, Surfers Paradise QLD" />
+        </div>
+      </div>
+    </div>
+
+    <!-- PROPERTY & SECURITY -->
+    <div class="section">
+      <div class="section-label">Property &amp; Security</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Property value</label>
+          <input type="text" id="propVal" value="1,170,000" oninput="calc()" />
+        </div>
+        <div class="field">
+          <label>Amount currently owing</label>
+          <input type="text" id="owing" value="292,000" oninput="calc()" />
+        </div>
+      </div>
+      <div class="metrics-row">
+        <div class="metric">
+          <div class="metric-label">Max lend (70% LVR)</div>
+          <div class="metric-value" id="maxLend">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Available equity</div>
+          <div class="metric-value" id="equity">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Effective LVR</div>
+          <div class="metric-value" id="lvr">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOAN DETAILS -->
+    <div class="section">
+      <div class="section-label">Loan Details</div>
+      <div class="field-grid three">
+        <div class="field">
+          <label>Net cash to client ($)</label>
+          <input type="text" id="netCash" value="100,000" oninput="calc()" />
+        </div>
+        <div class="field">
+          <label>Monthly interest rate (%)</label>
+          <input type="text" id="monthlyRate" value="2.00" oninput="calc()" />
+        </div>
+        <div class="field">
+          <label>Total loan term (months)</label>
+          <input type="text" id="term" value="12" oninput="calc()" />
+        </div>
+      </div>
+      <div class="cap-toggle-row">
+        <div class="toggle-label">
+          Capitalise interest
+          <span>Interest for the first N months rolled into the loan balance</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="capToggle" onchange="toggleCap()" />
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+      <div class="cap-fields" id="capFields">
+        <div class="field">
+          <label>Capitalised months</label>
+          <input type="text" id="capMonths" value="3" oninput="calc()" />
+        </div>
+        <div class="field">
+          <label>Capitalised interest (calculated)</label>
+          <input type="text" id="capInterestDisplay" readonly style="background: var(--result-bg); color: var(--blue-deep); cursor: default;" />
+        </div>
+      </div>
+      <div class="cap-note" id="capNote">Interest accrued in the first <span id="capMonthsLabel">3</span> month(s) is added to the principal balance. The remaining <span id="remMonthsLabel">9</span> month(s) of interest is paid normally.</div>
+    </div>
+
+    <!-- FEES -->
+    <div class="section">
+      <div class="section-label">Fees</div>
+      <div class="field-grid three">
+        <div class="field">
+          <label>Legal fees ($)</label>
+          <input type="text" id="legalFees" value="3,300" oninput="calc()" />
+        </div>
+        <div class="field">
+          <label>Application fees ($)</label>
+          <input type="text" id="appFees" value="2,900" oninput="calc()" />
+        </div>
+        <div class="field">
+          <label>Brokerage ($)</label>
+          <input type="text" id="brokerage" value="8,800" oninput="calc()" />
+        </div>
+      </div>
+      <div class="fee-list" style="margin-top: 1rem;">
+        <div class="fee-row"><span class="fee-name">Legal fees</span><span class="fee-val" id="fLegal">—</span></div>
+        <div class="fee-row"><span class="fee-name">Application fees</span><span class="fee-val" id="fApp">—</span></div>
+        <div class="fee-row"><span class="fee-name">Brokerage</span><span class="fee-val" id="fBrok">—</span></div>
+        <div class="fee-row"><span class="fee-name">Interest — remaining months (<span id="intDesc">—</span>)</span><span class="fee-val" id="fInt">—</span></div>
+        <div class="fee-row" id="fCapRow" style="display:none"><span class="fee-name">Capitalised interest — first <span id="fCapDesc">—</span> month(s) <em style="font-size:10px;opacity:0.7">(rolled in)</em></span><span class="fee-val" id="fCap">—</span></div>
+        <div class="fee-row subtotal"><span class="fee-name">Total fees &amp; interest</span><span class="fee-val" id="fTotal">—</span></div>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="section">
+      <div class="section-label">Loan Summary</div>
+      <div class="summary-rows">
+        <div class="sum-row"><span class="sum-label">Net cash to client</span><span class="sum-val" id="sNet">—</span></div>
+        <div class="sum-row"><span class="sum-label">Total fees</span><span class="sum-val" id="sFees">—</span></div>
+        <div class="sum-row"><span class="sum-label">Interest (remaining months)</span><span class="sum-val" id="sInt">—</span></div>
+        <div class="sum-row" id="sCapRow" style="display:none"><span class="sum-label">Capitalised interest (rolled into balance)</span><span class="sum-val" id="sCap">—</span></div>
+        <div class="sum-row"><span class="sum-label">Gross loan base (net cash + fees)</span><span class="sum-val" id="sGross">—</span></div>
+      </div>
+      <div class="total-box">
+        <div>
+          <div class="t-label">Gross loan amount (total repayable)</div>
+          <div class="t-value" id="sTotal">—</div>
+        </div>
+        <div id="lvrBadge"></div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="section" style="padding: 1.25rem 2rem;">
+      <div class="section-label">Export</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button onclick="generateLOO()" style="flex:1;min-width:160px;background:#1a1f3d;color:white;font-family:sans-serif;font-size:13px;font-weight:500;padding:11px 16px;border:none;border-radius:8px;cursor:pointer;">
+          ↓ Letter of Offer (.docx)
+        </button>
+        <button onclick="copyToClipboard()" style="flex:1;min-width:160px;background:#3b708c;color:white;font-family:sans-serif;font-size:13px;font-weight:500;padding:11px 16px;border:none;border-radius:8px;cursor:pointer;" id="copyBtn">
+          ⎘ Copy Summary
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+<script>
+function parse(id) {
+  const raw = document.getElementById(id).value.replace(/[,$\s%]/g, '');
+  const n = parseFloat(raw);
+  return isNaN(n) ? 0 : n;
+}
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('en-AU');
+}
+function toggleCap() {
+  const on = document.getElementById('capToggle').checked;
+  document.getElementById('capFields').classList.toggle('visible', on);
+  document.getElementById('capNote').classList.toggle('visible', on);
+  document.getElementById('fCapRow').style.display = on ? 'flex' : 'none';
+  document.getElementById('sCapRow').style.display = on ? 'flex' : 'none';
+  calc();
+}
+
+function getValues() {
+  const propVal = parse('propVal');
+  const owing = parse('owing');
+  const netCash = parse('netCash');
+  const monthlyRate = parse('monthlyRate') / 100;
+  const term = parse('term');
+  const legalFees = parse('legalFees');
+  const appFees = parse('appFees');
+  const brokerage = parse('brokerage');
+  const capOn = document.getElementById('capToggle').checked;
+  const capMonths = capOn ? Math.min(parse('capMonths'), term) : 0;
+  const remMonths = term - capMonths;
+  const maxLend = propVal * 0.70;
+  const equity = maxLend - owing;
+  const totalFees = legalFees + appFees + brokerage;
+  const grossBase = netCash + totalFees;
+  const capInterest = grossBase * monthlyRate * capMonths;
+  const remInterest = grossBase * monthlyRate * remMonths;
+  const totalInterest = capInterest + remInterest;
+  const grossTotal = grossBase + totalInterest;
+  const effectiveLVR = propVal > 0 ? ((owing + grossTotal) / propVal) * 100 : 0;
+  return { propVal, owing, netCash, monthlyRate, term, legalFees, appFees, brokerage,
+           capOn, capMonths, remMonths, maxLend, equity, totalFees, grossBase,
+           capInterest, remInterest, totalInterest, grossTotal, effectiveLVR };
+}
+
+function calc() {
+  const v = getValues();
+  const rate = parse('monthlyRate').toFixed(2);
+
+  document.getElementById('maxLend').textContent = fmt(v.maxLend);
+  document.getElementById('equity').textContent = fmt(v.equity);
+  document.getElementById('lvr').textContent = v.effectiveLVR.toFixed(1) + '%';
+  document.getElementById('fLegal').textContent = fmt(v.legalFees);
+  document.getElementById('fApp').textContent = fmt(v.appFees);
+  document.getElementById('fBrok').textContent = fmt(v.brokerage);
+  document.getElementById('intDesc').textContent = rate + '% × ' + v.remMonths + ' mo';
+  document.getElementById('fInt').textContent = fmt(v.remInterest);
+  document.getElementById('fCapDesc').textContent = v.capMonths;
+  document.getElementById('fCap').textContent = fmt(v.capInterest);
+  document.getElementById('fTotal').textContent = fmt(v.totalFees + v.totalInterest);
+
+  if (v.capOn) {
+    document.getElementById('capInterestDisplay').value = fmt(v.capInterest);
+    document.getElementById('capMonthsLabel').textContent = v.capMonths;
+    document.getElementById('remMonthsLabel').textContent = v.remMonths;
+  }
+
+  document.getElementById('sNet').textContent = fmt(v.netCash);
+  document.getElementById('sFees').textContent = fmt(v.totalFees);
+  document.getElementById('sInt').textContent = fmt(v.remInterest);
+  document.getElementById('sCap').textContent = fmt(v.capInterest);
+  document.getElementById('sGross').textContent = fmt(v.grossBase);
+  document.getElementById('sTotal').textContent = fmt(v.grossTotal);
+
+  const badge = document.getElementById('lvrBadge');
+  badge.innerHTML = v.grossTotal <= v.equity
+    ? '<span class="lvr-badge ok">✓ Within LVR</span>'
+    : '<span class="lvr-badge warn">⚠ Exceeds LVR</span>';
+}
+
+function copyToClipboard() {
+  const v = getValues();
+  const clientName = document.getElementById('clientName').value || '—';
+  const clientAddress = document.getElementById('clientAddress').value || '—';
+  const rate = parse('monthlyRate').toFixed(2);
+  const text = `QUICK LENDING CO — LOAN SUMMARY
+${'─'.repeat(40)}
+Client:           ${clientName}
+Property:         ${clientAddress}
+Date:             ${new Date().toLocaleDateString('en-AU')}
+
+PROPERTY & SECURITY
+Max lend (70%):   ${fmt(v.maxLend)}
+Available equity: ${fmt(v.equity)}
+Effective LVR:    ${v.effectiveLVR.toFixed(1)}%
+
+LOAN DETAILS
+Net cash to client:  ${fmt(v.netCash)}
+Monthly rate:        ${rate}%
+Loan term:           ${v.term} months${v.capOn ? `\nCapitalised months:  ${v.capMonths}` : ''}
+
+FEES
+Legal fees:       ${fmt(v.legalFees)}
+Application fees: ${fmt(v.appFees)}
+Brokerage:        ${fmt(v.brokerage)}
+Interest:         ${fmt(v.remInterest)}${v.capOn ? `\nCap. interest:    ${fmt(v.capInterest)}` : ''}
+Total fees:       ${fmt(v.totalFees + v.totalInterest)}
+
+GROSS LOAN AMOUNT: ${fmt(v.grossTotal)}`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '⎘ Copy Summary', 2000);
+  });
+}
+
+async function generateLOO() {
+  if (!window.docx) { alert('Document library still loading, please try again in a moment.'); return; }
+  const v = getValues();
+  const clientName = document.getElementById('clientName').value || '[Borrower Name]';
+  const clientAddress = document.getElementById('clientAddress').value || '[Property Address]';
+  const rate = parse('monthlyRate').toFixed(2);
+  const annualRate = (parse('monthlyRate') * 12).toFixed(2);
+  const today = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+          AlignmentType, BorderStyle, WidthType, ShadingType, VerticalAlign } = window.docx;
+
+  const border = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
+  const borders = { top: border, bottom: border, left: border, right: border };
+  const noBorder = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+  const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
+
+  function cell(text, bold = false, bg = null, w = 4680) {
+    return new TableCell({
+      borders,
+      width: { size: w, type: WidthType.DXA },
+      shading: bg ? { fill: bg, type: ShadingType.CLEAR } : undefined,
+      margins: { top: 80, bottom: 80, left: 120, right: 120 },
+      children: [new Paragraph({ children: [new TextRun({ text, bold, font: 'Arial', size: 20 })] })]
+    });
+  }
+
+  function headerCell(text, w = 4680) {
+    return cell(text, true, 'D5E8F0', w);
+  }
+
+  function row2(label, value) {
+    return new TableRow({ children: [headerCell(label, 4680), cell(value, false, null, 4680)] });
+  }
+
+  function feeRow(label, amount, payable) {
+    return new TableRow({ children: [
+      cell(label, false, null, 3120),
+      cell(amount, false, null, 2340),
+      cell(payable, false, null, 2340)
+    ]});
+  }
+
+  function para(text, opts = {}) {
+    return new Paragraph({
+      alignment: opts.align || AlignmentType.LEFT,
+      spacing: { before: opts.before || 120, after: opts.after || 120 },
+      children: [new TextRun({ text, bold: opts.bold || false, size: opts.size || 20, font: 'Arial', color: opts.color || '000000' })]
+    });
+  }
+
+  function heading(text) {
+    return new Paragraph({
+      spacing: { before: 240, after: 120 },
+      children: [new TextRun({ text, bold: true, size: 22, font: 'Arial', color: '1A1F3D' })],
+      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: '1A1F3D', space: 1 } }
+    });
+  }
+
+  const capInterestNote = v.capOn
+    ? `Interest for the first ${v.capMonths} month(s) is capitalised (rolled into the loan balance). The remaining ${v.remMonths} month(s) of interest is paid normally.`
+    : '';
+
+  const doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 },
+          margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }
+        }
+      },
+      children: [
+        // Header
+        para('QUICK LENDING CO', { bold: true, size: 28, color: '1A1F3D', before: 0 }),
+        para('Letter of Offer of Finance', { size: 22, color: '3B708C', before: 60, after: 60 }),
+        para(`Date: ${today}`, { size: 18, color: '6B7A8D', before: 0, after: 240 }),
+
+        para(`Dear ${clientName},`, { before: 0, after: 120 }),
+        para('Thank you for your application. We are pleased to offer finance on the terms set out below. Please review carefully and seek independent advice before signing.', { after: 240 }),
+
+        heading('Summary of Key Terms'),
+        new Table({
+          width: { size: 9026, type: WidthType.DXA },
+          columnWidths: [4513, 4513],
+          rows: [
+            row2('Loan Amount', fmt(v.grossTotal)),
+            row2('Application Fee', fmt(v.appFees)),
+            row2('Establishment Fee (Legal)', fmt(v.legalFees)),
+            row2('Brokerage Fee', fmt(v.brokerage)),
+            row2('Loan Documentation Fee', '$[X]'),
+            row2('Appraisal Fee', '$[X]'),
+            row2('Disbursements', 'At cost'),
+            ...(v.capOn ? [row2(`Capitalised Interest (${v.capMonths} months)`, fmt(v.capInterest))] : []),
+          ]
+        }),
+
+        para('', { before: 0, after: 120 }),
+        heading('Indicative Terms'),
+        new Table({
+          width: { size: 9026, type: WidthType.DXA },
+          columnWidths: [3010, 6016],
+          rows: [
+            new TableRow({ children: [headerCell('Loan Amount', 3010), cell(fmt(v.grossTotal), false, null, 6016)] }),
+            new TableRow({ children: [headerCell('Interest Rate', 3010), cell(`${rate}% per month (${annualRate}% per annum)`, false, null, 6016)] }),
+            new TableRow({ children: [headerCell('Term', 3010), cell(`${v.term} months`, false, null, 6016)] }),
+            new TableRow({ children: [headerCell('Security', 3010), cell(`First registered mortgage over ${clientAddress}. General Security Agreement over all present and after-acquired personal property of each Borrower and Guarantor. Unlimited personal guarantee and indemnity by each Guarantor.`, false, null, 6016)] }),
+            ...(v.capOn ? [new TableRow({ children: [headerCell('Capitalised Interest', 3010), cell(capInterestNote, false, null, 6016)] })] : []),
+            new TableRow({ children: [headerCell('Special Conditions', 3010), cell('Before we settle your loan you must: Sign our loan documents prepared by our solicitors Summer Lawyers; Obtain independent legal and financial advice if you are a third-party guarantor; Satisfy the conditions precedent to funding set out in the loan documents.', false, null, 6016)] }),
+          ]
+        }),
+
+        para('', { before: 0, after: 120 }),
+        heading('Fee Schedule'),
+        new Table({
+          width: { size: 9026, type: WidthType.DXA },
+          columnWidths: [3606, 2340, 3080],
+          rows: [
+            new TableRow({ children: [headerCell('Fee Type', 3606), headerCell('Amount', 2340), headerCell('Payable On', 3080)] }),
+            feeRow('Application Fee', fmt(v.appFees), 'Acceptance'),
+            feeRow('Establishment Fee (Legal)', fmt(v.legalFees), 'Acceptance'),
+            feeRow('Loan Documentation Fee', '$[X]', 'Upon instruction of solicitors'),
+            feeRow('Appraisal Fee', '$[X]', 'Upon undertaking appraisal'),
+            feeRow('Brokerage Fee', fmt(v.brokerage), 'Acceptance (remitted to broker)'),
+            feeRow('Disbursements', 'At cost', 'When incurred'),
+          ]
+        }),
+
+        para('', { before: 0, after: 120 }),
+        heading('Binding Effect and Acceptance'),
+        para('By signing this Letter of Offer, you and each Guarantor accept and agree to be bound by all terms in this Letter of Offer; agree to pay all fees in the Fee Schedule; and acknowledge and consent to the Security and Charging Clause.', { after: 240 }),
+        para('This offer is valid for two (2) days from the date herein.', { after: 240 }),
+        para('If you wish to proceed with the loan, please sign and return a copy of this letter to us.', { after: 240 }),
+        para('Yours faithfully,', { after: 60 }),
+        para('Quick Lending Co', { bold: true, after: 480 }),
+
+        heading('Borrower(s) / Guarantor(s) — Declaration & Agreement'),
+        para('Borrower:', { bold: true, after: 60 }),
+        new Table({
+          width: { size: 9026, type: WidthType.DXA },
+          columnWidths: [9026],
+          rows: [
+            new TableRow({ children: [new TableCell({
+              borders,
+              width: { size: 9026, type: WidthType.DXA },
+              margins: { top: 80, bottom: 80, left: 120, right: 120 },
+              children: [
+                new Paragraph({ children: [new TextRun({ text: `Executed by ${clientName}:`, bold: true, font: 'Arial', size: 20 })] }),
+                para('Name: ___________________________________', { before: 240 }),
+                para('Position: ________________________________', { before: 120 }),
+                para('Signature: _______________________________', { before: 120 }),
+                para('Date: ____________________________________', { before: 120, after: 60 }),
+              ]
+            })] })
+          ]
+        }),
+
+        para('', { before: 0, after: 120 }),
+        para('Guarantor:', { bold: true, after: 60 }),
+        new Table({
+          width: { size: 9026, type: WidthType.DXA },
+          columnWidths: [9026],
+          rows: [
+            new TableRow({ children: [new TableCell({
+              borders,
+              width: { size: 9026, type: WidthType.DXA },
+              margins: { top: 80, bottom: 80, left: 120, right: 120 },
+              children: [
+                para('Name: ___________________________________', { before: 60 }),
+                para('Signature: _______________________________', { before: 120 }),
+                para('Date: ____________________________________', { before: 120, after: 60 }),
+              ]
+            })] })
+          ]
+        }),
+
+        para('', { before: 240 }),
+        para('Quick Lending Co  |  Letter of Offer  |  Page 1 of 1', { size: 16, color: '999999', align: AlignmentType.CENTER }),
+      ]
+    }]
+  });
+
+  const blob = await window.docx.Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const safeName = (document.getElementById('clientName').value || 'Client').replace(/[^a-z0-9]/gi, '_');
+  a.download = `QLC_Letter_of_Offer_${safeName}.docx`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+calc();
+</script>
+</body>
+</html>
