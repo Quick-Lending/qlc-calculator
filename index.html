@@ -506,9 +506,10 @@
       <div class="summary-rows">
         <div class="sum-row"><span class="sum-label">Net cash to client</span><span class="sum-val" id="sNet">—</span></div>
         <div class="sum-row"><span class="sum-label">Total fees</span><span class="sum-val" id="sFees">—</span></div>
-        <div class="sum-row"><span class="sum-label">Interest (remaining months)</span><span class="sum-val" id="sInt">—</span></div>
-        <div class="sum-row" id="sCapRow" style="display:none"><span class="sum-label">Capitalised interest (rolled into balance)</span><span class="sum-val" id="sCap">—</span></div>
         <div class="sum-row"><span class="sum-label">Gross loan base (net cash + fees)</span><span class="sum-val" id="sGross">—</span></div>
+        <div class="sum-row" id="sCapRow" style="display:none"><span class="sum-label">Capitalised interest (rolled into loan)</span><span class="sum-val" id="sCap">—</span></div>
+        <div class="sum-row" id="sGrossLoanRow"><span class="sum-label" id="sGrossLoanLabel">Gross loan amount</span><span class="sum-val" id="sGrossLoan">—</span></div>
+        <div class="sum-row"><span class="sum-label">Remaining interest (<span id="sIntDesc">—</span>)</span><span class="sum-val" id="sInt">—</span></div>
       </div>
       <div class="total-box">
         <div>
@@ -584,13 +585,14 @@ function getValues() {
   const totalFees = legalFees + appFees + brokerage;
   const grossBase = netCash + totalFees;
   const capInterest = grossBase * monthlyRate * capMonths;
-  const remInterest = grossBase * monthlyRate * remMonths;
+  const grossLoanAmount = grossBase + capInterest;
+  const remInterest = grossLoanAmount * monthlyRate * remMonths;
   const totalInterest = capInterest + remInterest;
-  const grossTotal = grossBase + totalInterest;
+  const grossTotal = grossLoanAmount + remInterest;
   const effectiveLVR = propVal > 0 ? ((owing + grossTotal) / propVal) * 100 : 0;
   return { propVal, owing, netCash, monthlyRate, term, legalFees, appFees, brokerage,
            capOn, capMonths, remMonths, maxLend, equity, totalFees, grossBase,
-           capInterest, remInterest, totalInterest, grossTotal, effectiveLVR };
+           capInterest, grossLoanAmount, remInterest, totalInterest, grossTotal, effectiveLVR };
 }
 
 function calc() {
@@ -617,9 +619,12 @@ function calc() {
 
   document.getElementById('sNet').textContent = fmt(v.netCash);
   document.getElementById('sFees').textContent = fmt(v.totalFees);
-  document.getElementById('sInt').textContent = fmt(v.remInterest);
-  document.getElementById('sCap').textContent = fmt(v.capInterest);
   document.getElementById('sGross').textContent = fmt(v.grossBase);
+  document.getElementById('sCap').textContent = fmt(v.capInterest);
+  document.getElementById('sGrossLoan').textContent = fmt(v.grossLoanAmount);
+  document.getElementById('sGrossLoanLabel').textContent = v.capOn ? 'Gross loan amount (base + cap interest)' : 'Gross loan amount';
+  document.getElementById('sIntDesc').textContent = rate + '% × ' + v.remMonths + ' mo';
+  document.getElementById('sInt').textContent = fmt(v.remInterest);
   document.getElementById('sTotal').textContent = fmt(v.grossTotal);
 
   const badge = document.getElementById('lvrBadge');
