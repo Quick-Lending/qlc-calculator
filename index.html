@@ -686,7 +686,7 @@ async function generateLOO() {
   // JSZip already bundled inline
 
   // Fetch the LOO template from GitHub
-  const response = await fetch('QLC_LOO_Template.docx');
+  const response = await fetch('QLC_Letter_of_Offer_Template.docx');
   if (!response.ok) throw new Error('Could not load template: ' + response.status);
   const arrayBuffer = await response.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);
@@ -718,22 +718,23 @@ async function generateLOO() {
   // #20 = Guarantor Name
 
   // Fix split-run placeholder for Monthly Interest Rate
-  xml = xml.split('[Monthly Interest </w:t></w:r><w:proofErr w:type="gramStart"/><w:r w:rsidR="00AB5845" w:rsidRPr="001F520B"><w:rPr><w:rFonts w:ascii="Arial" w:eastAsia="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:highlight w:val="cyan"/></w:rPr><w:t>Rate]').join('[Monthly Interest Rate]');
+  xml = xml.split('[Monthly Interest </w:t></w:r><w:proofErr w:type="gramStart"/><w:r w:rsidRPr="00684708"><w:rPr><w:rFonts w:ascii="Arial" w:eastAsia="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="19"/><w:szCs w:val="19"/><w:highlight w:val="cyan"/></w:rPr><w:t>Rate]').join('[Monthly Interest Rate]');
 
   // Named bracket replacements
   const capMonthsVal = v.capOn ? String(v.capMonths) : '0';
-  const capInterestVal = v.capOn ? fmt(v.capInterest) : '$0';
+  const capInterestVal = v.capOn ? fmt(v.capInterest) : '0';
 
-  xml = replaceBracket(xml, 'Client Name',               clientName);
-  xml = replaceBracket(xml, 'Loan Amount',               fmt(v.grossLoanAmount));
-  xml = replaceBracket(xml, 'Application Fees',          fmt(v.appFees).replace('$',''));
-  xml = replaceBracket(xml, 'Brokerage',                 fmt(v.brokerage).replace('$',''));
-  xml = replaceBracket(xml, 'Legal fees',                fmt(v.legalFees).replace('$',''));
-  xml = replaceBracket(xml, 'Legal Fees',                fmt(v.legalFees).replace('$',''));
-  xml = replaceBracket(xml, 'Total Capitalised Interest', capInterestVal);
-  xml = replaceBracket(xml, 'Total Loan Term',           String(v.term));
-  xml = replaceBracket(xml, 'Property Address',          clientAddress);
-  xml = replaceBracket(xml, 'Monthly Interest Rate',     rate);
+  xml = replaceBracket(xml, 'Client Name',            clientName);
+  xml = replaceBracket(xml, 'Net cash to client',     fmt(v.netCash).replace('$',''));
+  xml = replaceBracket(xml, 'Gross Loan Amount',      fmt(v.grossLoanAmount).replace('$',''));
+  xml = replaceBracket(xml, 'Application fees',       fmt(v.appFees).replace('$',''));
+  xml = replaceBracket(xml, 'Brokerage',              fmt(v.brokerage).replace('$',''));
+  xml = replaceBracket(xml, 'Legal fees',             fmt(v.legalFees).replace('$',''));
+  xml = replaceBracket(xml, 'Capitalised Months',     capMonthsVal);
+  xml = replaceBracket(xml, 'Capitalised Interest',   capInterestVal);
+  xml = replaceBracket(xml, 'Monthly Interest Rate',  rate);
+  xml = replaceBracket(xml, 'Total Loan Term',        String(v.term));
+  xml = replaceBracket(xml, 'Property Address',       clientAddress);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
