@@ -686,7 +686,7 @@ async function generateLOO() {
   // JSZip already bundled inline
 
   // Fetch the LOO template from GitHub
-  const response = await fetch('QLC_Letter_of_Offer_Template.docx');
+  const response = await fetch('https://raw.githubusercontent.com/Quick-Lending/qlc-calculator/main/QLC_Letter_of_Offer_Template.docx');
   if (!response.ok) throw new Error('Could not load template: ' + response.status);
   const arrayBuffer = await response.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);
