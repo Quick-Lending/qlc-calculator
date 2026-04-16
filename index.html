@@ -478,7 +478,7 @@
       <div class="section-label">Fees</div>
       <div class="field-grid three">
         <div class="field">
-          <label>Legal fees / loan documentation fee ($)</label>
+          <label>Legal fees / loan doc fee ($)</label>
           <input type="text" id="legalFees" value="3,300" oninput="calc()" />
         </div>
         <div class="field">
@@ -668,6 +668,12 @@ GROSS LOAN AMOUNT: ${fmt(v.grossTotal)}`;
     btn.textContent = '✓ Copied!';
     setTimeout(() => btn.textContent = '⎘ Copy Summary', 2000);
   });
+}
+
+function replaceBracket(xml, name, value) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp('\\[' + escaped + '\\]', 'g');
+  return xml.replace(re, value);
 }
 
 async function generateLOO() {
