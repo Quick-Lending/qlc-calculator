@@ -735,6 +735,10 @@ async function generateLOO() {
   xml = replaceBracket(xml, 'Monthly Interest Rate',  rate);
   xml = replaceBracket(xml, 'Total Loan Term',        String(v.term));
   xml = replaceBracket(xml, 'Property Address',       clientAddress);
+
+  // Write modified XML back and generate blob
+  zip.file('word/document.xml', xml);
+  const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
