@@ -23875,7 +23875,7 @@ function generateSummary() {
           ...capRows,
           ['Remaining interest (' + v.remMonths + ' months @ ' + rate + '%)', fmt(v.remInterest)],
           ['Total fees & interest', fmt(v.totalFees + v.totalInterest)],
-          ['Gross loan amount (total repayable)', fmt(v.grossTotal)],
+          ['Total amount repayable over ' + v.term + ' months', fmt(v.grossTotal)],
         ]),
 
         para('', { before: 240, after: 0 }),
