@@ -513,7 +513,7 @@
       </div>
       <div class="total-box">
         <div>
-          <div class="t-label">Gross loan amount (total repayable)</div>
+          <div class="t-label" id="totalLabel">Total amount repayable over <span id="totalTermLabel">12</span> months</div>
           <div class="t-value" id="sTotal">—</div>
         </div>
         <div id="lvrBadge"></div>
@@ -23705,6 +23705,7 @@ function calc() {
   document.getElementById('sIntDesc').textContent = rate + '% × ' + v.remMonths + ' mo';
   document.getElementById('sInt').textContent = fmt(v.remInterest);
   document.getElementById('sTotal').textContent = fmt(v.grossTotal);
+  document.getElementById('totalTermLabel').textContent = v.term;
 
   const badge = document.getElementById('lvrBadge');
   badge.innerHTML = v.grossTotal <= v.equity
